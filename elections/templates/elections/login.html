@@ -1,0 +1,38 @@
+{% extends 'elections/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <h2 class="text-center fw-bold mb-4">Voter Portal</h2>
+                    <p class="text-center text-muted mb-4">Login with your credentials to access the ballot.</p>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg shadow-sm">Login to Vote</button>
+                    </form>
+
+                    {% if error %}
+                        <div class="alert alert-danger mt-3">{{ error }}</div>
+                    {% endif %}
+
+                    <hr class="my-4">
+                    <div class="text-center">
+                        <small class="text-muted">Need to register? Contact your election administrator.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

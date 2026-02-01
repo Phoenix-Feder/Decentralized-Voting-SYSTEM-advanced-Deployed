@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blockchain Voting Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .winner-badge {
+        background-color: #ffd700;
+        color: #000;
+        font-weight: bold;
+      }
+      .navbar {
+        margin-bottom: 2rem;
+      }
+      .status-pulse {
+        width: 10px;
+        height: 10px;
+        background: #28a745;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      .text-truncate-custom {
+        max-width: 150px;
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="{% url 'web_dashboard' %}"
+          >VOTING DApp</a
+        >
+        <div class="ms-auto d-flex align-items-center">
+          {% if user.is_authenticated %}
+          <span class="text-white me-3 small"
+            >Logged in: <strong>{{ user.username }}</strong></span
+          >
+
+          {% if user.is_staff %}
+          <a
+            href="{% url 'admin_controls' %}"
+            class="btn btn-warning btn-sm fw-bold me-2"
+            >Admin Panel</a
+          >
+          {% endif %}
+
+          <a href="{% url 'voter_login' %}" class="btn btn-outline-light btn-sm"
+            >Logout</a
+          >
+          {% else %}
+          <a href="{% url 'voter_login' %}" class="btn btn-outline-light btn-sm"
+            >Login</a
+          >
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+    <div class="container pb-5">
+      <header class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">
+          {{ election_name|default:"Decentralized Election" }}
+        </h1>
+        <p class="text-muted">
+          <span class="status-pulse"></span> Verified by Ethereum Smart Contract
+        </p>
+      </header>
+
+      {% if error %}
+      <div
+        class="alert alert-danger alert-dismissible fade show shadow-sm"
+        role="alert"
+      >
+        <strong>Error:</strong> {{ error }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+      {% endif %}
+
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div
+            class="card p-4 h-100 shadow border-start border-primary border-4"
+          >
+            <h3 class="mb-4">Cast Your Vote</h3>
+            <form
+              id="voteForm"
+              action="{% url 'api_cast_vote' %}"
+              method="POST"
+            >
+              {% csrf_token %}
+              <div class="mb-3">
+                <label class="form-label fw-bold">Select Candidate</label>
+                <select
+                  class="form-select"
+                  name="candidate_id"
+                  id="candidateSelect"
+                  required
+                >
+                  <option value="" disabled selected>
+                    Choose a candidate...
+                  </option>
+                  {% for cand in candidates %}
+                  <option value="{{ cand.id }}">{{ cand.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Voter Private Key</label>
+                <input
+                  type="password"
+                  class="form-control {% if request.session.voter_pk %}is-valid{% endif %}"
+                  name="voter_private_key"
+                  id="privateKeyInput"
+                  placeholder="Paste your private key here"
+                  value="{{ request.session.voter_pk|default:'' }}"
+                  required
+                  {%
+                  if
+                  request.session.voter_pk
+                  %}readonly{%
+                  endif
+                  %}
+                />
+                <div
+                  class="form-text {% if request.session.voter_pk %}text-success{% else %}text-danger{% endif %} small"
+                >
+                  {% if request.session.voter_pk %} Key loaded automatically
+                  from secure session. {% else %} Never share this key with
+                  anyone. {% endif %}
+                </div>
+              </div>
+              <button
+                type="submit"
+                class="btn btn-primary btn-lg w-100 shadow-sm mt-2"
+              >
+                Submit Vote
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-lg-8" id="leaderboard-section">
+          <div class="card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h3 class="m-0">Real-Time Leaderboard</h3>
+              <span
+                class="badge winner-badge px-3 py-2 fs-6 shadow-sm"
+                id="winner-badge"
+              >
+                🏆 Leader: {{ winner_name }}
+              </span>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>ID</th>
+                    <th>Candidate</th>
+                    <th>Votes</th>
+                    <th>Progress</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for cand in candidates %}
+                  <tr>
+                    <td><span class="text-muted">#{{ cand.id }}</span></td>
+                    <td><strong class="text-dark">{{ cand.name }}</strong></td>
+                    <td class="fw-bold">{{ cand.votes }}</td>
+                    <td style="width: 45%">
+                      <div class="progress" style="height: 12px">
+                        <div
+                          class="progress-bar progress-bar-animated progress-bar-striped bg-success"
+                          role="progressbar"
+                          style="width: {{ cand.votes }}0%;"
+                        ></div>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12" id="audit-section">
+          <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h3 class="m-0">Blockchain Audit Trail</h3>
+              <small class="text-muted">Live sync enabled</small>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped align-middle">
+                <thead>
+                  <tr class="text-muted small text-uppercase">
+                    <th>Block</th>
+                    <th>Voter Address</th>
+                    <th>Candidate ID</th>
+                    <th>Transaction Hash</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for log in audit_history %}
+                  <tr>
+                    <td>
+                      <span class="badge bg-secondary"
+                        >#{{ log.block_number }}</span
+                      >
+                    </td>
+                    <td>
+                      <code class="text-truncate-custom">{{ log.voter }}</code>
+                    </td>
+                    <td class="text-center">{{ log.candidate_id }}</td>
+                    <td>
+                      <small class="text-muted"
+                        >{{ log.transaction_hash|truncatechars:30 }}</small
+                      >
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function refreshBlockchainData() {
+        // We skip refresh if the user is currently typing in the private key field
+        const pkInput = document.getElementById("privateKeyInput");
+        if (
+          pkInput === document.activeElement &&
+          pkInput.value !== "" &&
+          !pkInput.readOnly
+        )
+          return;
+
+        fetch(window.location.href)
+          .then((response) => response.text())
+          .then((html) => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+
+            document.getElementById("leaderboard-section").innerHTML =
+              doc.getElementById("leaderboard-section").innerHTML;
+            document.getElementById("audit-section").innerHTML =
+              doc.getElementById("audit-section").innerHTML;
+
+            const currentSelect = document.getElementById("candidateSelect");
+            const newSelect = doc.getElementById("candidateSelect");
+            if (currentSelect.options.length !== newSelect.options.length) {
+              currentSelect.innerHTML = newSelect.innerHTML;
+            }
+          })
+          .catch((err) => console.warn("Sync failed:", err));
+      }
+
+      setInterval(refreshBlockchainData, 3000);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

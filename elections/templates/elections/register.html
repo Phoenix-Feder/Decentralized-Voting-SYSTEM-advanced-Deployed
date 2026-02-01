@@ -1,0 +1,78 @@
+{% extends 'elections/base.html' %} {% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow border-0 p-4">
+        <div class="card-body">
+          <h2 class="text-center fw-bold mb-4">Authorize New Voter</h2>
+          <p class="text-center text-muted small mb-4">
+            Enter a wallet address to permit it to participate in the election
+            on the blockchain.
+          </p>
+
+          <form method="POST">
+            {% csrf_token %}
+            <div class="mb-4">
+              <label class="form-label fw-semibold"
+                >Voter Wallet Address (Public Key)</label
+              >
+              <input
+                type="text"
+                name="voter_address"
+                class="form-control form-control-lg"
+                placeholder="0x..."
+                required
+              />
+              <div class="form-text mt-2">
+                <i class="bi bi-info-circle"></i> Once registered, this address
+                is granted 1 vote token.
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-success btn-lg w-100 shadow-sm"
+            >
+              Register on Blockchain
+            </button>
+          </form>
+
+          {% if success %}
+          <div
+            class="alert alert-success alert-dismissible fade show mt-4"
+            role="alert"
+          >
+            <strong>Success!</strong> {{ success }}
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+          {% endif %} {% if error %}
+          <div
+            class="alert alert-danger alert-dismissible fade show mt-4"
+            role="alert"
+          >
+            <strong>Registration Failed:</strong> {{ error }}
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="/api/dashboard/" class="text-decoration-none"
+          >← Back to Dashboard</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

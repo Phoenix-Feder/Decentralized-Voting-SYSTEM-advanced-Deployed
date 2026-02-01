@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blockchain Voting System</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .navbar {
+        margin-bottom: 30px;
+      }
+      .footer {
+        margin-top: 50px;
+        padding: 20px 0;
+        background: #fff;
+        border-top: 1px solid #dee2e6;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="/api/dashboard/">Election DApp</a>
+        <div class="collapse navbar-collapse">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/api/dashboard/">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/api/admin-panel/register/"
+                >Register Voter</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-warning" href="/admin/">Django Admin</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main>{% block content %} {% endblock %}</main>
+
+    <footer class="footer text-center">
+      <div class="container">
+        <p class="text-muted mb-0">
+          © 2026 Blockchain Voting System | Secured by Ethereum
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
