@@ -8,6 +8,10 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    />
     <style>
       body {
         background-color: #f8f9fa;
@@ -45,12 +49,17 @@
           opacity: 1;
         }
       }
-      .text-truncate-custom {
-        max-width: 150px;
-        display: inline-block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+      .timer-box {
+        font-family: "Courier New", Courier, monospace;
+        font-weight: bold;
+        color: #dc3545;
+        font-size: 1.1rem;
+      }
+      .date-badge {
+        font-size: 0.85rem;
+        background: #e9ecef;
+        color: #495057;
+        border: 1px solid #dee2e6;
       }
     </style>
   </head>
@@ -65,7 +74,6 @@
           <span class="text-white me-3 small"
             >Logged in: <strong>{{ user.username }}</strong></span
           >
-
           {% if user.is_staff %}
           <a
             href="{% url 'admin_controls' %}"
@@ -73,7 +81,6 @@
             >Admin Panel</a
           >
           {% endif %}
-
           <a href="{% url 'voter_login' %}" class="btn btn-outline-light btn-sm"
             >Logout</a
           >
@@ -91,30 +98,37 @@
         <h1 class="display-4 fw-bold text-primary">
           {{ election_name|default:"Decentralized Election" }}
         </h1>
-        <p class="text-muted">
-          <span class="status-pulse"></span> Verified by Ethereum Smart Contract
-        </p>
+
+        <div class="mb-3">
+          <span class="badge date-badge px-3 py-2 me-2">
+            <i class="bi bi-calendar-check"></i> Starts: {{ start_date|date:"M
+            d, H:i" }}
+          </span>
+          <span class="badge date-badge px-3 py-2">
+            <i class="bi bi-calendar-x"></i> Ends: {{ end_date|date:"M d, H:i"
+            }}
+          </span>
+        </div>
+
+        <div class="d-flex justify-content-center align-items-center gap-3">
+          <p class="text-muted m-0">
+            <span class="status-pulse"></span> Verified by Ethereum
+          </p>
+          <div class="vr"></div>
+          <p class="m-0 timer-box" id="countdown-display">
+            ⏳ Loading Timer...
+          </p>
+        </div>
       </header>
 
       {% if error %}
-      <div
-        class="alert alert-danger alert-dismissible fade show shadow-sm"
-        role="alert"
-      >
-        <strong>Error:</strong> {{ error }}
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="alert"
-          aria-label="Close"
-        ></button>
-      </div>
+      <div class="alert alert-danger shadow-sm">{{ error }}</div>
       {% endif %}
 
       <div class="row g-4">
         <div class="col-lg-4">
           <div
-            class="card p-4 h-100 shadow border-start border-primary border-4"
+            class="card p-4 h-100 border-start border-primary border-4 shadow-sm"
           >
             <h3 class="mb-4">Cast Your Vote</h3>
             <form
@@ -143,10 +157,9 @@
                 <label class="form-label fw-bold">Voter Private Key</label>
                 <input
                   type="password"
-                  class="form-control {% if request.session.voter_pk %}is-valid{% endif %}"
+                  class="form-control"
                   name="voter_private_key"
                   id="privateKeyInput"
-                  placeholder="Paste your private key here"
                   value="{{ request.session.voter_pk|default:'' }}"
                   required
                   {%
@@ -156,17 +169,11 @@
                   endif
                   %}
                 />
-                <div
-                  class="form-text {% if request.session.voter_pk %}text-success{% else %}text-danger{% endif %} small"
-                >
-                  {% if request.session.voter_pk %} Key loaded automatically
-                  from secure session. {% else %} Never share this key with
-                  anyone. {% endif %}
-                </div>
               </div>
               <button
                 type="submit"
                 class="btn btn-primary btn-lg w-100 shadow-sm mt-2"
+                id="voteBtn"
               >
                 Submit Vote
               </button>
@@ -175,15 +182,12 @@
         </div>
 
         <div class="col-lg-8" id="leaderboard-section">
-          <div class="card p-4 h-100">
+          <div class="card p-4 h-100 shadow-sm">
             <div class="d-flex justify-content-between align-items-center mb-4">
               <h3 class="m-0">Real-Time Leaderboard</h3>
-              <span
-                class="badge winner-badge px-3 py-2 fs-6 shadow-sm"
-                id="winner-badge"
+              <span class="badge winner-badge px-3 py-2 fs-6 shadow-sm"
+                >🏆 Leader: {{ winner_name }}</span
               >
-                🏆 Leader: {{ winner_name }}
-              </span>
             </div>
             <div class="table-responsive">
               <table class="table table-hover align-middle">
@@ -198,14 +202,13 @@
                 <tbody>
                   {% for cand in candidates %}
                   <tr>
-                    <td><span class="text-muted">#{{ cand.id }}</span></td>
-                    <td><strong class="text-dark">{{ cand.name }}</strong></td>
+                    <td>#{{ cand.id }}</td>
+                    <td><strong>{{ cand.name }}</strong></td>
                     <td class="fw-bold">{{ cand.votes }}</td>
                     <td style="width: 45%">
                       <div class="progress" style="height: 12px">
                         <div
                           class="progress-bar progress-bar-animated progress-bar-striped bg-success"
-                          role="progressbar"
                           style="width: {{ cand.votes }}0%;"
                         ></div>
                       </div>
@@ -219,19 +222,16 @@
         </div>
 
         <div class="col-12" id="audit-section">
-          <div class="card p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-              <h3 class="m-0">Blockchain Audit Trail</h3>
-              <small class="text-muted">Live sync enabled</small>
-            </div>
+          <div class="card p-4 shadow-sm">
+            <h3 class="mb-4">Blockchain Audit Trail</h3>
             <div class="table-responsive">
               <table class="table table-sm table-striped align-middle">
                 <thead>
-                  <tr class="text-muted small text-uppercase">
+                  <tr class="text-muted small">
                     <th>Block</th>
                     <th>Voter Address</th>
-                    <th>Candidate ID</th>
-                    <th>Transaction Hash</th>
+                    <th>Cand ID</th>
+                    <th>Hash</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -242,13 +242,11 @@
                         >#{{ log.block_number }}</span
                       >
                     </td>
-                    <td>
-                      <code class="text-truncate-custom">{{ log.voter }}</code>
-                    </td>
+                    <td><code>{{ log.voter|truncatechars:25 }}</code></td>
                     <td class="text-center">{{ log.candidate_id }}</td>
                     <td>
                       <small class="text-muted"
-                        >{{ log.transaction_hash|truncatechars:30 }}</small
+                        >{{ log.transaction_hash|truncatechars:40 }}</small
                       >
                     </td>
                   </tr>
@@ -262,38 +260,55 @@
     </div>
 
     <script>
+      // 1. IMPROVED LIVE COUNTDOWN LOGIC
+      function updateTimer() {
+        const now = Math.floor(Date.now() / 1000);
+        const startTime = parseInt("{{ start_date|date:'U' }}");
+        const endTime = parseInt("{{ end_date|date:'U' }}");
+        const timerElement = document.getElementById("countdown-display");
+        const voteBtn = document.getElementById("voteBtn");
+
+        if (now < startTime) {
+          const diff = startTime - now;
+          timerElement.innerHTML = `⏳ Starting in: ${formatTime(diff)}`;
+          timerElement.style.color = "#0d6efd"; // Blue for upcoming
+          if (voteBtn) voteBtn.disabled = true;
+        } else if (now >= startTime && now <= endTime) {
+          const diff = endTime - now;
+          timerElement.innerHTML = `⚡ Ends in: ${formatTime(diff)}`;
+          timerElement.style.color = "#dc3545"; // Red for active
+          if (voteBtn) voteBtn.disabled = false;
+        } else {
+          timerElement.innerHTML = "🏁 Election Finished";
+          timerElement.style.color = "#6c757d"; // Gray for ended
+          if (voteBtn) voteBtn.disabled = true;
+        }
+      }
+
+      function formatTime(seconds) {
+        const d = Math.floor(seconds / (3600 * 24));
+        const h = Math.floor((seconds % (3600 * 24)) / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        return d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m ${s}s`;
+      }
+
+      setInterval(updateTimer, 1000);
+      updateTimer();
+
+      // 2. BLOCKCHAIN DATA SYNC (AJAX)
       function refreshBlockchainData() {
-        // We skip refresh if the user is currently typing in the private key field
-        const pkInput = document.getElementById("privateKeyInput");
-        if (
-          pkInput === document.activeElement &&
-          pkInput.value !== "" &&
-          !pkInput.readOnly
-        )
-          return;
-
         fetch(window.location.href)
-          .then((response) => response.text())
+          .then((res) => res.text())
           .then((html) => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-
+            const doc = new DOMParser().parseFromString(html, "text/html");
             document.getElementById("leaderboard-section").innerHTML =
               doc.getElementById("leaderboard-section").innerHTML;
             document.getElementById("audit-section").innerHTML =
               doc.getElementById("audit-section").innerHTML;
-
-            const currentSelect = document.getElementById("candidateSelect");
-            const newSelect = doc.getElementById("candidateSelect");
-            if (currentSelect.options.length !== newSelect.options.length) {
-              currentSelect.innerHTML = newSelect.innerHTML;
-            }
-          })
-          .catch((err) => console.warn("Sync failed:", err));
+          });
       }
-
-      setInterval(refreshBlockchainData, 3000);
+      setInterval(refreshBlockchainData, 5000);
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

@@ -75,76 +75,160 @@
 
       <div class="row g-4 mb-4">
         <div class="col-md-4">
-          <div class="card p-3 text-center">
-            <h6 class="text-muted">Total Authorized Voters</h6>
+          <div
+            class="card p-3 text-center border-bottom border-primary border-4"
+          >
+            <h6 class="text-muted small text-uppercase fw-bold">
+              Voters (Local DB)
+            </h6>
             <h2 class="fw-bold text-primary">{{ total_voters }}</h2>
           </div>
         </div>
         <div class="col-md-4">
-          <div class="card p-3 text-center">
-            <h6 class="text-muted">Blockchain Election</h6>
-            <h2 class="fw-bold text-success">{{ blockchain_info.name }}</h2>
+          <div
+            class="card p-3 text-center border-bottom border-success border-4"
+          >
+            <h6 class="text-muted small text-uppercase fw-bold">
+              Live Election Name
+            </h6>
+            <h2 class="fw-bold text-success">
+              {{ blockchain_info.electionName|default:"None" }}
+            </h2>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div
+            class="card p-3 text-center border-bottom border-warning border-4"
+          >
+            <h6 class="text-muted small text-uppercase fw-bold">
+              On-Chain Candidates
+            </h6>
+            <h2 class="fw-bold text-warning">
+              {{ blockchain_info.candidatesCount }}
+            </h2>
           </div>
         </div>
       </div>
 
       <div class="row g-4">
         <div class="col-lg-6">
-          <div class="card p-4">
-            <h5 class="mb-4 fw-bold text-secondary">Blockchain Management</h5>
-            <form method="POST" class="mb-4">
+          <div class="card p-4 mb-4">
+            <h5 class="mb-4 fw-bold text-secondary">
+              <i class="bi bi-plus-circle-fill"></i> Candidate Management
+            </h5>
+            <form method="POST">
               {% csrf_token %}
               <input type="hidden" name="action" value="add_candidate" />
-              <label class="form-label small fw-bold">Add New Candidate</label>
               <div class="input-group">
                 <input
                   type="text"
                   name="candidate_name"
                   class="form-control"
-                  placeholder="Candidate Full Name"
+                  placeholder="Full Name"
                   required
                 />
                 <button class="btn btn-primary" type="submit">Deploy</button>
               </div>
             </form>
+          </div>
+
+          <div class="card p-4">
+            <h5 class="mb-4 fw-bold text-secondary">
+              <i class="bi bi-shield-lock-fill"></i> Voter Authorization
+            </h5>
             <form method="POST">
               {% csrf_token %}
-              <input type="hidden" name="action" value="register_voter" />
-              <label class="form-label small fw-bold"
-                >Authorize Wallet Address</label
-              >
-              <div class="input-group">
+              <div class="mb-3">
+                <label class="form-label small fw-bold"
+                  >Ethereum Wallet Address</label
+                >
                 <input
                   type="text"
                   name="voter_address"
-                  class="form-control"
+                  class="form-control mb-2"
                   placeholder="0x..."
                   required
                 />
-                <button class="btn btn-success" type="submit">Authorize</button>
+              </div>
+              <div class="d-flex gap-2">
+                <button
+                  name="action"
+                  value="register_voter"
+                  class="btn btn-success flex-grow-1"
+                  type="submit"
+                >
+                  Authorize
+                </button>
+                <button
+                  name="action"
+                  value="revoke_voter"
+                  class="btn btn-danger flex-grow-1"
+                  type="submit"
+                >
+                  Revoke
+                </button>
               </div>
             </form>
           </div>
         </div>
+
         <div class="col-lg-6">
-          <div class="card p-4 border-start border-danger border-4">
-            <h5 class="mb-4 fw-bold text-danger">Reset Election</h5>
+          <div class="card p-4 border-start border-danger border-4 h-100">
+            <h5 class="mb-3 fw-bold text-danger">
+              <i class="bi bi-calendar-range"></i> Schedule New Election
+            </h5>
             <p class="text-muted small">
-              Clears all voters and candidate tallies from the current
-              blockchain contract. <strong>This action is irreversible.</strong>
+              This will overwrite the current on-chain election parameters.
             </p>
+
             <form
               method="POST"
-              onsubmit="
-                return confirm(
-                  'WARNING: Are you sure you want to reset the entire election?',
-                );
-              "
+              onsubmit="return confirm('Update blockchain election schedule?');"
             >
               {% csrf_token %}
               <input type="hidden" name="action" value="reset_election" />
-              <button class="btn btn-outline-danger w-100 py-2" type="submit">
-                Reset Smart Contract
+
+              <div class="mb-3">
+                <label class="form-label small fw-bold">Election Name</label>
+                <input
+                  type="text"
+                  name="election_name"
+                  class="form-control"
+                  placeholder="e.g. Student Council 2026"
+                  required
+                />
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label class="form-label small fw-bold"
+                    >Start Date & Time</label
+                  >
+                  <input
+                    type="datetime-local"
+                    name="start_time"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-bold"
+                    >End Date & Time</label
+                  >
+                  <input
+                    type="datetime-local"
+                    name="end_time"
+                    class="form-control"
+                    required
+                  />
+                </div>
+              </div>
+
+              <button
+                class="btn btn-outline-danger w-100 py-2 fw-bold"
+                type="submit"
+              >
+                Initialize Schedule
               </button>
             </form>
           </div>

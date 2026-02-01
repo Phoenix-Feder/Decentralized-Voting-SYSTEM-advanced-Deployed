@@ -1,17 +1,6 @@
 [
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_startTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_endTime",
-				"type": "uint256"
-			}
-		],
+		"inputs": [],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
 	},
@@ -19,9 +8,9 @@
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": true,
+				"indexed": false,
 				"internalType": "uint256",
-				"name": "candidateId",
+				"name": "id",
 				"type": "uint256"
 			},
 			{
@@ -38,44 +27,13 @@
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "newElectionId",
-				"type": "uint256"
-			},
-			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "startTime",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "endTime",
+				"name": "id",
 				"type": "uint256"
 			}
 		],
-		"name": "ElectionReset",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "startTime",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "endTime",
-				"type": "uint256"
-			}
-		],
-		"name": "ElectionTimeUpdated",
+		"name": "CandidateRemoved",
 		"type": "event"
 	},
 	{
@@ -92,12 +50,6 @@
 				"internalType": "uint256",
 				"name": "candidateId",
 				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "electionId",
-				"type": "uint256"
 			}
 		],
 		"name": "VoteCast",
@@ -107,26 +59,33 @@
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "electionId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
+				"indexed": false,
 				"internalType": "address",
 				"name": "voter",
 				"type": "address"
 			}
 		],
-		"name": "VoterRegistered",
+		"name": "VoterAuthorized",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "voter",
+				"type": "address"
+			}
+		],
+		"name": "VoterRevoked",
 		"type": "event"
 	},
 	{
 		"inputs": [
 			{
 				"internalType": "string",
-				"name": "name",
+				"name": "_name",
 				"type": "string"
 			}
 		],
@@ -146,6 +105,19 @@
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_voter",
+				"type": "address"
+			}
+		],
+		"name": "authorizeVoter",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -172,6 +144,11 @@
 				"internalType": "uint256",
 				"name": "voteCount",
 				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "exists",
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
@@ -191,13 +168,26 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "electionId",
-		"outputs": [
+		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "",
+				"name": "_candidateId",
 				"type": "uint256"
+			}
+		],
+		"name": "castVote",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "electionName",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
 			}
 		],
 		"stateMutability": "view",
@@ -217,23 +207,12 @@
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			}
-		],
-		"name": "getCandidate",
+		"inputs": [],
+		"name": "getRemainingTime",
 		"outputs": [
 			{
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
 				"internalType": "uint256",
-				"name": "votes",
+				"name": "",
 				"type": "uint256"
 			}
 		],
@@ -242,11 +221,6 @@
 	},
 	{
 		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
 			{
 				"internalType": "address",
 				"name": "",
@@ -267,17 +241,12 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
 				"internalType": "address",
 				"name": "",
 				"type": "address"
 			}
 		],
-		"name": "isRegisteredVoter",
+		"name": "isAuthorized",
 		"outputs": [
 			{
 				"internalType": "bool",
@@ -291,12 +260,12 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "voter",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
 			}
 		],
-		"name": "registerVoter",
+		"name": "removeCandidate",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -304,17 +273,35 @@
 	{
 		"inputs": [
 			{
+				"internalType": "address",
+				"name": "_voter",
+				"type": "address"
+			}
+		],
+		"name": "revokeVoter",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
 				"internalType": "uint256",
-				"name": "_start",
+				"name": "_startTime",
 				"type": "uint256"
 			},
 			{
 				"internalType": "uint256",
-				"name": "_end",
+				"name": "_endTime",
 				"type": "uint256"
 			}
 		],
-		"name": "resetElection",
+		"name": "setupElection",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -330,37 +317,6 @@
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_start",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_end",
-				"type": "uint256"
-			}
-		],
-		"name": "updateElectionTime",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "candidateId",
-				"type": "uint256"
-			}
-		],
-		"name": "vote",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	}
 ]
